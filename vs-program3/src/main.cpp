@@ -18,6 +18,9 @@ void loop() {
   float c = dht.readTemperature();
   float f = dht.readTemperature(true);
 
+  float k = (f + 459.67) * 5/9;
+  float r = c * 4 / 5;
+
   if (isnan(h) || isnan(c) || isnan(f))
   {
     Serial.println("Failed to read from DHT sensor!");
@@ -32,6 +35,10 @@ void loop() {
   Serial.print(F("%  Temperature: "));
   Serial.print(c);
   Serial.print(F("°C "));
+  Serial.print(r);
+  Serial.print(F("°R "));
+  Serial.print(k);
+  Serial.print(F("°K "));
   Serial.print(f);
   Serial.print(F("°F  Heat index: "));
   Serial.print(hic);
