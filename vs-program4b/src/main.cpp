@@ -6,7 +6,7 @@ void setup() {
   Serial.begin (115200);
    pinMode(triggerPin, OUTPUT);
    pinMode(echoPin, INPUT);
-   pinMode(BUILTIN_LED, OUTPUT);
+   pinMode(D0, OUTPUT);
 }
 
 void loop() {
