@@ -7,56 +7,72 @@ int nilaiSensor;
 #define RED_LED D5 
 #define GREEN_LED D6 
 #define BLUE_LED D7
-#define triggerPin D3
-#define echoPin D2
 
 DHT dht(D1, DHTTYPE);
 
 void setup() {
   // put your setup code here, to run once:
-   Serial.begin (115200);
-   pinMode(triggerPin, OUTPUT);
-   pinMode(echoPin, INPUT);
+  Serial.begin(115200);
   pinMode(RED_LED,OUTPUT);
   pinMode(GREEN_LED,OUTPUT);
   pinMode(BLUE_LED,OUTPUT);
-   pinMode(D0, OUTPUT);
+  Serial.println("task 1");
 }
+
 void loop() {
-   long duration, jarak;
-   digitalWrite(triggerPin, LOW);
-   delayMicroseconds(2);
-   digitalWrite(triggerPin, HIGH);
-   delayMicroseconds(10);
-   digitalWrite(triggerPin, LOW);
-   duration = pulseIn(echoPin, HIGH);
-   jarak = duration * 0.034 / 2;
-   Serial.print(jarak);
-   Serial.println(" cm");
-   if(jarak == 1){
-    digitalWrite(BLUE_LED, HIGH);
-    digitalWrite(GREEN_LED, LOW); 
-    digitalWrite(RED_LED, LOW); 
-    Serial.println("LED biru menyala");
-  }else if(jarak == 2){
-    digitalWrite(GREEN_LED, HIGH);
-    digitalWrite(RED_LED, LOW); 
-    digitalWrite(BLUE_LED, LOW); 
-    Serial.println("LED hijau menyala");
-  }else if(jarak == 3){
-    digitalWrite(RED_LED, HIGH);
-    digitalWrite(GREEN_LED, LOW); 
-    digitalWrite(BLUE_LED, LOW); 
-    Serial.println("LED merah menyala");
-  }else{
-    digitalWrite(RED_LED, HIGH);
-    digitalWrite(GREEN_LED, HIGH);
-    digitalWrite(BLUE_LED, HIGH);
-    Serial.println("LED menyala semua");
-    delay(100);
-    digitalWrite(GREEN_LED, LOW); 
-    digitalWrite(BLUE_LED, LOW);
-    digitalWrite(RED_LED, LOW); 
+  // put your main code here, to run repeatedly:
+  delay(2000);
+  nilaiSensor = analogRead(sensorLDR);
+  float h = dht.readHumidity();
+  float c = dht.readTemperature();
+  float f = dht.readTemperature(true);
+
+  float k = (f + 459.67) * 5/9;
+  float r = c * 4 / 5;
+
+  if (isnan(h) || isnan(c) || isnan(f))
+  {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
   }
-   delay(2000);
+
+  float hif = dht.computeHeatIndex(f, h);
+  float hic = dht.computeHeatIndex(c, h, false);
+
+  if ( (c > 25) && (nilaiSensor != 0) )
+  {
+    digitalWrite(RED_LED, HIGH); 
+    Serial.println("Kota berada pada suhu Panas ");
+    Serial.print("dengan intensitas cahaya sebesar : ");
+    Serial.println(nilaiSensor); 
+    delay(1000);
+  } else if ( (c > 19) && (nilaiSensor == 0))
+  {
+    digitalWrite(BLUE_LED, HIGH); 
+    Serial.println("Kota berada pada suhu Dingin "); 
+    Serial.print("dengan intensitas cahaya sebesar : ");
+    Serial.println(nilaiSensor); 
+    delay(1000);  
+  } else{
+    Serial.println("Tidak terkategorikan"); 
+  }
+  
+  Serial.print(F("Humidity: "));
+  Serial.print(h);
+  Serial.print(F("%  Temperature: "));
+  Serial.print(c);
+  Serial.print(F("°C "));
+  Serial.print(r);
+  Serial.print(F("°R "));
+  Serial.print(k);
+  Serial.print(F("°K "));
+  Serial.print(f);
+  Serial.print(F("°F  Heat index: "));
+  Serial.print(hic);
+  Serial.print(F("°C "));
+  Serial.print(hif);
+  Serial.println(F("°F"));
+  digitalWrite(GREEN_LED, LOW); 
+  digitalWrite(BLUE_LED, LOW); 
+  digitalWrite(RED_LED, LOW); 
 }
