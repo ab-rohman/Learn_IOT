@@ -46,19 +46,15 @@ void loop() {
     Serial.print("dengan intensitas cahaya sebesar : ");
     Serial.println(nilaiSensor); 
     delay(1000);
-  } else if ( c > 19)
+  } else if ( (c > 19) && (nilaiSensor == 0))
   {
-    digitalWrite(GREEN_LED, HIGH); 
-    Serial.println("Kota berada pada suhu Normal "); 
-    Serial.print("dengan intensitas cahaya sebesar : ");
-    Serial.println(nilaiSensor); 
-    delay(1000);  
-  } else { 
     digitalWrite(BLUE_LED, HIGH); 
     Serial.println("Kota berada pada suhu Dingin "); 
     Serial.print("dengan intensitas cahaya sebesar : ");
     Serial.println(nilaiSensor); 
-    delay(1000);
+    delay(1000);  
+  } else{
+    Serial.println("Tidak terkategorikan"); 
   }
   
   Serial.print(F("Humidity: "));
