@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include <DHT.h>
+#define sensorLDR A0
+int nilaiSensor;
 
 #define DHTTYPE DHT11
 #define RED_LED D5 
@@ -14,12 +16,13 @@ void setup() {
   pinMode(RED_LED,OUTPUT);
   pinMode(GREEN_LED,OUTPUT);
   pinMode(BLUE_LED,OUTPUT);
-  Serial.println("Menggunakan DHT11 untuk menyalakan lampu");
+  Serial.println("task 1");
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   delay(2000);
+  nilaiSensor = analogRead(sensorLDR);
   float h = dht.readHumidity();
   float c = dht.readTemperature();
   float f = dht.readTemperature(true);
@@ -36,20 +39,26 @@ void loop() {
   float hif = dht.computeHeatIndex(f, h);
   float hic = dht.computeHeatIndex(c, h, false);
 
-  if ( c > 25 )
+  if ( (c > 25) && (nilaiSensor != 0) )
   {
     digitalWrite(RED_LED, HIGH); 
-    Serial.println("Kota berada pada suhu Panas "); 
-    delay(1000); 
+    Serial.println("Kota berada pada suhu Panas ");
+    Serial.print("dengan intensitas cahaya sebesar : ");
+    Serial.println(nilaiSensor); 
+    delay(1000);
   } else if ( c > 19)
   {
-    digitalWrite(BLUE_LED, HIGH); 
+    digitalWrite(GREEN_LED, HIGH); 
     Serial.println("Kota berada pada suhu Normal "); 
+    Serial.print("dengan intensitas cahaya sebesar : ");
+    Serial.println(nilaiSensor); 
     delay(1000);  
   } else { 
-    digitalWrite(GREEN_LED, HIGH); 
+    digitalWrite(BLUE_LED, HIGH); 
     Serial.println("Kota berada pada suhu Dingin "); 
-    delay(1000); 
+    Serial.print("dengan intensitas cahaya sebesar : ");
+    Serial.println(nilaiSensor); 
+    delay(1000);
   }
   
   Serial.print(F("Humidity: "));
