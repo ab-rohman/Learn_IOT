@@ -3,7 +3,7 @@
 //Servo Setup
 #include <Servo.h>
 Servo myservo;  
-int sudutON= 90;
+int sudutON= 180;
 int sudutOFF= 0;
 
 //HC-SR Setup
@@ -12,9 +12,6 @@ int sudutOFF= 0;
 
 #define SOUND_SPEED 0.034
 #define CM_TO_INCH 0.393701
-
-#define MQTT_USER "jti"
-#define MQTT_PASSWORD "1"
 
 long duration;
 float distanceCm;
@@ -35,16 +32,18 @@ String macAddr = "";
 #include <PubSubClient.h>
 
 // const char *mqtt_server = "broker.emqx.io";
-// const char *topic = "esp32/1941720023/ana_test";
 // const char *mqtt_username = "emqx";
 // const char *mqtt_password = "public";
 // const int mqtt_port = 1883;
 
-const char *topic = "esp32/1941720023/ana_result";
-const char *topic_result = "esp32/1941720023/ana_test";
-const int mqtt_port = 1883;
+const char *topic = "esp32/1941720023/ana_test";
+const char *topic_result = "esp32/1941720023/ana_result";
+//const int mqtt_port = 1883;
 const char *ssid = "JTI-POLINEMA";
 const char *password = "jtifast!";
+
+const char *mqtt_user = "jti";
+const char *mqtt_password = "1";
 
 IPAddress server(140, 238, 201, 233);
 
@@ -53,7 +52,7 @@ PubSubClient client(espClient);
 
 //var project
 String pesan = "Reconnecting";
-String blanker = "            ";
+String blanker = " ";
 //unsigned int
 void callback(char* topic_result, byte* payload, int length) {
   String response;
@@ -81,6 +80,38 @@ void callback(char* topic_result, byte* payload, int length) {
     }
   Serial.println();
   // Serial.println(set_temp);
+}
+
+void callback2(String topic_result, byte* message, unsigned int length) {
+  Serial.print("Message arrived on topic: ");
+  Serial.print(topic);
+  Serial.print(". Message: ");
+  String messageTemp;
+  
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)message[i]);
+    messageTemp += (char)message[i];
+  }
+  if (messageTemp== "true")
+  {
+    lcd.setCursor(0,1);
+    lcd.print("box buka");
+    myservo.write(sudutON);
+  } else if (messageTemp== "false")
+  {
+    lcd.setCursor(0,1);
+    lcd.print("box tutup");
+    myservo.write(sudutOFF);
+  } else
+  {
+    lcd.setCursor(0,1);
+    lcd.print(messageTemp);
+  }
+  Serial.println();
+
+  // Feel free to add more if statements to control more GPIOs with MQTT
+
+  // If a message is received on the topic room/lamp, you check if the message is either on or off. Turns the lamp GPIO according to the message
 }
 
 void setup() {
@@ -119,9 +150,8 @@ void setup() {
   client.setKeepAlive(50);
   // client.setServer(mqtt_server, 1883);
   client.setServer(server, 1883);
-  client.setCallback(callback);
-  client.subscribe(topic);
-  client.subscribe(topic_result);
+  client.setCallback(callback2);
+  //client.subscribe(topic);
 }
 
 void hcsr(){
@@ -140,8 +170,10 @@ void reconnect()
   while (!client.connected())
   {
     Serial.print("Attempting MQTT connection...");
-    if (client.connect(macAddr.c_str(), MQTT_USER, MQTT_PASSWORD))
+    if (client.connect(macAddr.c_str(), mqtt_user, mqtt_password))
+    //if (client.connect("ESP8266Client"))
     {
+      client.subscribe(topic_result);
       Serial.println("connected");
     }
     else
@@ -149,46 +181,35 @@ void reconnect()
       Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
-      client.connect(macAddr.c_str(), MQTT_USER, MQTT_PASSWORD);
+      client.connect(macAddr.c_str(), mqtt_user, mqtt_password);
+      //client.connect("ESP8266Client");
       delay(1000);
     }
   }
 }
 
 void loop() {
-  hcsr();
-  // Prints the distance in the LCD
-  lcd.setCursor(0, 0);
-  if(distanceCm <= 100){
-    //digitalWrite(LED, HIGH);
-    myservo.write(sudutON);
-    lcd.print("Ada tamu" + blanker);
-  }else{
-    //digitalWrite(LED, LOW);
-    myservo.write(sudutOFF);
-    lcd.print("       --" + blanker);
-  };
-  lcd.setCursor(0,1);
-  lcd.print(String(client.subscribe(topic_result)) + blanker);
-  if(client.subscribe(topic_result)){
-    lcd.print("message dari nabil" + blanker);
-  }
-
-  //cek koneksi
   if (!client.connected())
   {
     reconnect();
   }
   if (!client.loop())
   {
-    client.connect(macAddr.c_str(), MQTT_USER, MQTT_PASSWORD);
+    client.connect(macAddr.c_str(), mqtt_user, mqtt_password);
   }
 
+  hcsr();
+  
+
+  //cek koneksi
+  
   static char distTemp[7];
   dtostrf(distanceCm, 4, 2, distTemp);
-  client.publish(topic_result, distTemp);
-  client.subscribe(topic);
+  client.publish(topic, distTemp);
+  //client.subscribe(topic);
   client.subscribe(topic_result);
+  // Prints the distance in the LCD
+  lcd.setCursor(0, 0);
   delay(1000);
 }
 
@@ -208,5 +229,13 @@ void scrollText(int row, String message, int delayTime, int lcdColumns)
    }
  }
 
+//jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj
 
 
+
+// This functions reconnects your ESP8266 to your MQTT broker
+// Change the function below if you want to subscribe to more topics with your ESP8266 
+
+// The setup function sets your ESP GPIOs to Outputs, starts the serial communication at a baud rate of 115200
+// Sets your mqtt broker and sets the callback function
+// The callback function is what receives messages and actually controls the
