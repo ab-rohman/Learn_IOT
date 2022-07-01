@@ -95,12 +95,12 @@ void callback2(String topic_result, byte* message, unsigned int length) {
   if (messageTemp== "true")
   {
     lcd.setCursor(0,1);
-    lcd.print("box buka");
+    lcd.print("box buka        ");
     myservo.write(sudutON);
   } else if (messageTemp== "false")
   {
     lcd.setCursor(0,1);
-    lcd.print("box tutup");
+    lcd.print("box tutup       ");
     myservo.write(sudutOFF);
   } else
   {
